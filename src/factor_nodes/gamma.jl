@@ -36,22 +36,24 @@ end
 
 slug(::Type{Gamma}) = "Gam"
 
-format(dist::ProbabilityDistribution{Univariate, Gamma}) = "$(slug(Gamma))(a=$(format(dist.params[:a])), b=$(format(dist.params[:b])))"
+format(dist::ProbabilityDistribution{V, Gamma}) where V<:VariateType = "$(slug(Gamma))(a=$(format(dist.params[:a])), b=$(format(dist.params[:b])))"
 
 ProbabilityDistribution(::Type{Univariate}, ::Type{Gamma}; a=1.0, b=1.0) = ProbabilityDistribution{Univariate, Gamma}(Dict(:a=>a, :b=>b))
 ProbabilityDistribution(::Type{Gamma}; a=1.0, b=1.0) = ProbabilityDistribution{Univariate, Gamma}(Dict(:a=>a, :b=>b))
+ProbabilityDistribution(::Type{Multivariate}, ::Type{Gamma}; a=[1.0], b=[1.0]) = ProbabilityDistribution{Univariate, Gamma}(Dict(:a=>a, :b=>b))
 
-dims(dist::ProbabilityDistribution{Univariate, Gamma}) = 1
+dims(dist::ProbabilityDistribution{V, Gamma}) where V<:VariateType = length(dist.params[:a])
 
 vague(::Type{Gamma}) = ProbabilityDistribution(Univariate, Gamma, a=1.0, b=tiny) # Flat prior leads to more stable behaviour than Jeffrey's prior
+vague(::Type{Gamma}, dims::Int64) = ProbabilityDistribution(Multivariate, Gamma, a=ones(dims), b=tiny*ones(dims))
 
-unsafeMean(dist::ProbabilityDistribution{Univariate, Gamma}) = dist.params[:a]/dist.params[:b] # unsafe mean
+unsafeMean(dist::ProbabilityDistribution{V, Gamma}) where V<:VariateType = dist.params[:a] ./ dist.params[:b] # unsafe mean
 
-unsafeLogMean(dist::ProbabilityDistribution{Univariate, Gamma}) = digamma(dist.params[:a]) - log(dist.params[:b])
+unsafeLogMean(dist::ProbabilityDistribution{V, Gamma}) where V<:VariateType = digamma.(dist.params[:a]) - log.(dist.params[:b])
 
-unsafeVar(dist::ProbabilityDistribution{Univariate, Gamma}) = dist.params[:a]/dist.params[:b]^2 # unsafe variance
+unsafeVar(dist::ProbabilityDistribution{V, Gamma}) where V<:VariateType = dist.params[:a] ./ dist.params[:b].^2 # unsafe variance
 
-isProper(dist::ProbabilityDistribution{Univariate, Gamma}) = (dist.params[:a] >= tiny) && (dist.params[:b] >= tiny)
+isProper(dist::ProbabilityDistribution{V, Gamma}) where V<:VariateType = all(dist.params[:a] .>= tiny) && all(dist.params[:b] .>= tiny)
 
 function prod!( x::ProbabilityDistribution{Univariate, Gamma},
                 y::ProbabilityDistribution{Univariate, Gamma},

@@ -2,15 +2,17 @@ module GammaTest
 
 using Test
 using ForneyLab
-import ForneyLab: prod!, unsafeMean, unsafeVar, outboundType, isApplicable, dims
-import ForneyLab: SPGammaOutVPP, VBGammaOut
+using ForneyLab: prod!, unsafeMean, unsafeVar, outboundType, isApplicable, dims, isProper
+using ForneyLab: SPGammaOutVPP, VBGammaOut
 
 @testset "dims" begin
     @test dims(ProbabilityDistribution(Univariate, Gamma, a=1.0, b=1.0)) == 1
+    @test dims(ProbabilityDistribution(Univariate, Gamma, a=ones(2), b=ones(2))) == 2
 end
 
 @testset "vague" begin
     @test vague(Gamma) == ProbabilityDistribution(Univariate, Gamma, a=1.0, b=tiny)
+    @test vague(Gamma, 2) == ProbabilityDistribution(Multivariate, Gamma, a=ones(2), b=tiny*ones(2))
 end
 
 @testset "prod!" begin
@@ -22,9 +24,17 @@ end
 
 @testset "unsafe mean and variance" begin
     @test unsafeMean(ProbabilityDistribution(Univariate, Gamma, a=1.0, b=2.0)) == 0.5
+    @test unsafeMean(ProbabilityDistribution(Multivariate, Gamma, a=fill(1.0, 2), b=fill(2.0, 2))) == fill(0.5, 2)
     @test unsafeVar(ProbabilityDistribution(Univariate, Gamma, a=1.0, b=2.0)) == 0.25
+    @test unsafeVar(ProbabilityDistribution(Multivariate, Gamma, a=fill(1.0, 2), b=fill(2.0, 2))) == fill(0.25, 2)
 end
 
+@testset "isProper" begin
+    @test isProper(ProbabilityDistribution(Univariate, Gamma, a=1.0, b=1.0)) == true
+    @test isProper(ProbabilityDistribution(Multivariate, Gamma, a=ones(2), b=ones(2))) == true
+    @test isProper(ProbabilityDistribution(Univariate, Gamma, a=0.0, b=0.0)) == false
+    @test isProper(ProbabilityDistribution(Multivariate, Gamma, a=zeros(2), b=zeros(2))) == false
+end
 
 #-------------
 # Update rules

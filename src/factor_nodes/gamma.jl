@@ -76,17 +76,20 @@ end
 end
 
 # Entropy functional
-function differentialEntropy(dist::ProbabilityDistribution{Univariate, Gamma})
-    lgamma(dist.params[:a]) -
-    (dist.params[:a] - 1.0)*digamma(dist.params[:a]) -
-    log(dist.params[:b]) +
-    dist.params[:a]
+function differentialEntropy(dist::ProbabilityDistribution{V, Gamma}) where V<:VariateType
+    sum(lgamma.(dist.params[:a]) -
+        (dist.params[:a] .- 1.0) .* digamma.(dist.params[:a]) -
+        log.(dist.params[:b]) +
+        dist.params[:a])
 end
 
 # Average energy functional
-function averageEnergy(::Type{Gamma}, marg_out::ProbabilityDistribution{Univariate}, marg_a::ProbabilityDistribution{Univariate, PointMass}, marg_b::ProbabilityDistribution{Univariate})
-    lgamma(marg_a.params[:m]) -
-    marg_a.params[:m]*unsafeLogMean(marg_b) -
-    (marg_a.params[:m] - 1.0)*unsafeLogMean(marg_out) +
-    unsafeMean(marg_b)*unsafeMean(marg_out)
+function averageEnergy(::Type{Gamma},
+                       marg_out::ProbabilityDistribution{V},
+                       marg_a::ProbabilityDistribution{V, PointMass},
+                       marg_b::ProbabilityDistribution{V}) where V<:VariateType
+    sum(lgamma.(marg_a.params[:m]) -
+        marg_a.params[:m] .* unsafeLogMean(marg_b) -
+        (marg_a.params[:m] .- 1.0) .* unsafeLogMean(marg_out) +
+        unsafeMean(marg_b) .* unsafeMean(marg_out))
 end

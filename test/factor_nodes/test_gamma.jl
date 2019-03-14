@@ -64,6 +64,7 @@ end
 
 @testset "averageEnergy and differentialEntropy" begin
     @test differentialEntropy(ProbabilityDistribution(Univariate, Gamma, a=1.0, b=2.0)) == averageEnergy(Gamma, ProbabilityDistribution(Univariate, Gamma, a=1.0, b=2.0), ProbabilityDistribution(Univariate, PointMass, m=1.0), ProbabilityDistribution(Univariate, PointMass, m=2.0))
+    @test differentialEntropy(ProbabilityDistribution(Multivariate, Gamma, a=ones(2), b=fill(2.0, 2))) == averageEnergy(Gamma, ProbabilityDistribution(Multivariate, Gamma, a=ones(2), b=fill(2.0, 2)), ProbabilityDistribution(Multivariate, PointMass, m=ones(2)), ProbabilityDistribution(Multivariate, PointMass, m=fill(2.0, 2)))
 end
 
 end #module

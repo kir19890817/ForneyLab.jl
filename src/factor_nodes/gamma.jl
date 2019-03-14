@@ -40,7 +40,7 @@ format(dist::ProbabilityDistribution{V, Gamma}) where V<:VariateType = "$(slug(G
 
 ProbabilityDistribution(::Type{Univariate}, ::Type{Gamma}; a=1.0, b=1.0) = ProbabilityDistribution{Univariate, Gamma}(Dict(:a=>a, :b=>b))
 ProbabilityDistribution(::Type{Gamma}; a=1.0, b=1.0) = ProbabilityDistribution{Univariate, Gamma}(Dict(:a=>a, :b=>b))
-ProbabilityDistribution(::Type{Multivariate}, ::Type{Gamma}; a=[1.0], b=[1.0]) = ProbabilityDistribution{Univariate, Gamma}(Dict(:a=>a, :b=>b))
+ProbabilityDistribution(::Type{Multivariate}, ::Type{Gamma}; a=[1.0], b=[1.0]) = ProbabilityDistribution{Multivariate, Gamma}(Dict(:a=>a, :b=>b))
 
 dims(dist::ProbabilityDistribution{V, Gamma}) where V<:VariateType = length(dist.params[:a])
 
@@ -55,21 +55,21 @@ unsafeVar(dist::ProbabilityDistribution{V, Gamma}) where V<:VariateType = dist.p
 
 isProper(dist::ProbabilityDistribution{V, Gamma}) where V<:VariateType = all(dist.params[:a] .>= tiny) && all(dist.params[:b] .>= tiny)
 
-function prod!( x::ProbabilityDistribution{Univariate, Gamma},
-                y::ProbabilityDistribution{Univariate, Gamma},
-                z::ProbabilityDistribution{Univariate, Gamma}=ProbabilityDistribution(Univariate, Gamma, a=0.0, b=0.0))
+function prod!( x::ProbabilityDistribution{V, Gamma},
+                y::ProbabilityDistribution{V, Gamma},
+                z::ProbabilityDistribution{V, Gamma}=ProbabilityDistribution(V, Gamma, a=x.params[:a], b=x.params[:b])) where V<:VariateType
 
-    z.params[:a] = x.params[:a] + y.params[:a] - 1.0
-    z.params[:b] = x.params[:b] + y.params[:b]
+    z.params[:a] = x.params[:a] .+ y.params[:a] .- 1.0
+    z.params[:b] = x.params[:b] .+ y.params[:b]
 
     return z
 end
 
-@symmetrical function prod!(x::ProbabilityDistribution{Univariate, Gamma},
-                            y::ProbabilityDistribution{Univariate, PointMass},
-                            z::ProbabilityDistribution{Univariate, PointMass}=ProbabilityDistribution(Univariate, PointMass, m=0.0))
+@symmetrical function prod!(x::ProbabilityDistribution{V, Gamma},
+                            y::ProbabilityDistribution{V, PointMass},
+                            z::ProbabilityDistribution{V, PointMass}=ProbabilityDistribution(V, PointMass)) where V<:VariateType
 
-    (y.params[:m] > 0.0) || error("PointMass location $(y.params[:m]) should be positive")
+    all(y.params[:m] .> 0.0) || error("PointMass location $(y.params[:m]) should be positive")
     z.params[:m] = y.params[:m]
 
     return z

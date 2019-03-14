@@ -7,7 +7,7 @@ using ForneyLab: SPGammaOutVPP, VBGammaOut
 
 @testset "dims" begin
     @test dims(ProbabilityDistribution(Univariate, Gamma, a=1.0, b=1.0)) == 1
-    @test dims(ProbabilityDistribution(Univariate, Gamma, a=ones(2), b=ones(2))) == 2
+    @test dims(ProbabilityDistribution(Multivariate, Gamma, a=ones(2), b=ones(2))) == 2
 end
 
 @testset "vague" begin
@@ -20,6 +20,11 @@ end
     @test ProbabilityDistribution(Univariate, Gamma, a=1.0, b=2.0) * ProbabilityDistribution(Univariate, PointMass, m=1.0) == ProbabilityDistribution(Univariate, PointMass, m=1.0)
     @test ProbabilityDistribution(Univariate, PointMass, m=1.0) * ProbabilityDistribution(Univariate, Gamma, a=1.0, b=2.0) == ProbabilityDistribution(Univariate, PointMass, m=1.0)
     @test_throws Exception ProbabilityDistribution(Univariate, PointMass, m=-1.0) * ProbabilityDistribution(Univariate, Gamma, a=1.0, b=2.0)
+
+    @test ProbabilityDistribution(Multivariate, Gamma, a=ones(2), b=fill(2.0, 2)) * ProbabilityDistribution(Multivariate, Gamma, a=fill(3.0, 2), b=fill(4.0, 2)) == ProbabilityDistribution(Multivariate, Gamma, a=fill(3.0, 2), b=fill(6.0, 2))
+    @test ProbabilityDistribution(Multivariate, Gamma, a=ones(2), b=fill(2.0, 2)) * ProbabilityDistribution(Multivariate, PointMass, m=ones(2)) == ProbabilityDistribution(Multivariate, PointMass, m=ones(2))
+    @test ProbabilityDistribution(Multivariate, PointMass, m=ones(2)) * ProbabilityDistribution(Multivariate, Gamma, a=ones(2), b=fill(2.0, 2)) == ProbabilityDistribution(Multivariate, PointMass, m=ones(2))
+    @test_throws Exception ProbabilityDistribution(Multivariate, PointMass, m=-ones(2)) * ProbabilityDistribution(Multivariate, Gamma, a=ones(2), b=fill(2.0, 2))
 end
 
 @testset "unsafe mean and variance" begin

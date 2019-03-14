@@ -51,6 +51,7 @@ end
     @test isApplicable(SPGammaOutVPP, [Nothing, Message{PointMass}, Message{PointMass}]) 
 
     @test ruleSPGammaOutVPP(nothing, Message(Univariate, PointMass, m=1.0), Message(Univariate, PointMass, m=2.0)) == Message(Univariate, Gamma, a=1.0, b=2.0)
+    @test ruleSPGammaOutVPP(nothing, Message(Multivariate, PointMass, m=ones(2)), Message(Multivariate, PointMass, m=fill(2.0, 2))) == Message(Multivariate, Gamma, a=ones(2), b=fill(2.0, 2))
 end
 
 @testset "VBGammaOut" begin
@@ -60,6 +61,7 @@ end
     @test !isApplicable(VBGammaOut, [ProbabilityDistribution, ProbabilityDistribution, Nothing]) 
 
     @test ruleVBGammaOut(nothing, ProbabilityDistribution(Univariate, PointMass, m=1.5), ProbabilityDistribution(Univariate, PointMass, m=3.0)) == Message(Univariate, Gamma, a=1.5, b=3.0)
+    @test ruleVBGammaOut(nothing, ProbabilityDistribution(Multivariate, PointMass, m=fill(1.5, 2)), ProbabilityDistribution(Multivariate, PointMass, m=fill(3.0, 2))) == Message(Multivariate, Gamma, a=fill(1.5, 2), b=fill(3.0, 2))
 end
 
 @testset "averageEnergy and differentialEntropy" begin
